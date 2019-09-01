@@ -2,7 +2,8 @@
 #
 # Stand-alone GRIDSS-PURPLE-Linx pipeline
 #
-# Example: ./gridss-purple-linx.sh -n /data/COLO829R_dedup.realigned.bam -t /data/COLO829T_dedup.realigned.bam -v /data/colo829snv.vcf.gz
+# Example: ./gridss-purple-linx.sh -n /data/COLO829R_dedup.realigned.bam -t /data/COLO829T_dedup.realigned.bam -v /data/colo829snv.vcf.gz -s colo829 -v /data/COLO829v003T.somatic_caller_post_processed.vcf.gz
+# docker run  gridss/gridss-purple-linx
 
 set -o errexit -o pipefail -o noclobber -o nounset
 ! getopt --test > /dev/null 
@@ -139,11 +140,23 @@ ref_sample=${sample}_N
 tumor_sample=${sample}_T
 
 base_path=$(dirname $(readlink $0 || echo $0))
-###
-gridss_jar=$(ls -1 /jar/*gridss*.jar)
-amber_jar=$(ls -1 /jar/*amber*.jar)
-cobalt_jar=$(ls -1 /jar/*count-bam-lines*.jar)
-purple_jar=$(ls -1 /jar/*purity-ploidy-estimator*.jar)
+### Find the jars
+find_jar() {
+	env_name=$1
+	if [[ -f "${!env_name:-}" ]] ; then
+		echo "${!env_name}"
+	#elif ls -1 /jar/$2*-jar-with-dependencies.jar 2>&1 >/dev/null ]] ; then
+	#	echo "$(ls -1 /jar/$2*-jar-with-dependencies.jar) 2>/dev/null"
+	else
+		echo "Unable to find $2 jar. Specify using the environment variant $env_name" 1>&2
+		exit 1
+	fi
+}
+gridss_jar=$(find_jar GRIDSS_JAR gridss)
+amber_jar=$(find_jar AMBER_JAR amber)
+cobalt_jar=$(find_jar COBALT_JAR cobalt)
+purple_jar=$(find_jar PURPLE_JAR purple)
+linx_jar=$(find_jar LINX_JAR sv-linx)
 
 for program in bwa sambamba samtools circos Rscript java ; do
 	if ! which $program > /dev/null ; then
@@ -151,17 +164,15 @@ for program in bwa sambamba samtools circos Rscript java ; do
 		exit 1
 	fi
 done
-
-for rpackage in tidyverse devtools assertthat testthat NMF stringdist stringr argparser R.cache "copynumber" StructuralVariantAnnotation "VariantAnnotation" "rtracklayer" "BSgenome" "org.Hs.eg.db" "TxDb.Hsapiens.UCSC.hg19.knownGene" "BSgenome.Hsapiens.UCSC.hg19" ; do
+for rpackage in tidyverse devtools assertthat testthat NMF stringdist stringr argparser R.cache "copynumber" StructuralVariantAnnotation "VariantAnnotation" "rtracklayer" "BSgenome" "org.Hs.eg.db" ; do
 	if ! Rscript -e "installed.packages()" | grep $rpackage > /dev/null ; then
 		echo "Missing R package $rpackage"
-		echo "All required R packages can be installed by running Rscript install_rpackages.R with appropriate permissions."
 		exit 1
 	fi
 done
 
 if ! java -Xms$jvmheap -cp $gridss_jar gridss.Echo ; then
-	echo "Failure invoking java with --jvmheap parameter of \"$jvmheap\". Specify a JVM heap size (e.g. \"31g\") that is valid for this machine."
+	echo "Failure invoking java with --jvmheap parameter of \"$jvmheap\". Specify a JVM heap size (e.g. \"20g\") that is valid for this machine."
 	exit 1
 fi
 
@@ -202,6 +213,7 @@ else
 fi
 if [[ ! -f $gridss_raw_vcf ]] ; then
 	echo "Error creating $gridss_raw_vcf. Aborting" 2>&1
+	exit 1
 fi
 if [[ ! -f $gridss_somatic_vcf ]] ; then
 	if [[ ! -f $gridss_refann_vcf ]] ; then
@@ -233,12 +245,12 @@ if [[ ! -f $gridss_somatic_vcf ]] ; then
 	# workaround for https://github.com/Bioconductor/VariantAnnotation/issues/19
 	rm -f $gridss_decompressed_vcf
 	gunzip -c $gridss_virann_vcf | awk ' { if (length($0) >= 4000) { gsub(":0.00:", ":0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000:")} ; print $0  } ' > $gridss_decompressed_vcf
-	Rscript /scripts/gridss_somatic_filter.R \
+	Rscript /opt/gridss/gridss_somatic_filter.R \
 		-p ${gridss_pon} \
 		-i $gridss_decompressed_vcf \
 		-o ${gridss_somatic_vcf} \
 		-f ${gridss_somatic_full_vcf} \
-		-s /scripts/ \
+		-s /opt/gridss/ \
 		--gc \
 		2>&1 | tee -a $log_prefix.gridss.somatic_filter.log
 	if [[ $cleanup == "y" ]] ; then
@@ -253,6 +265,7 @@ else
 fi
 if [[ ! -f $gridss_somatic_vcf ]] ; then
 	echo "Error creating $gridss_somatic_vcf. Aborting" 2>&1
+	exit 1
 fi
 echo  $gridss_raw_vcf
 exit 1
@@ -287,6 +300,7 @@ java -Xmx10G $jvm_args \
 
 if [[ ! -f $amber_baf ]] ; then
 	echo "Error creating $amber_baf. Aborting" 2>&1
+	exit 1
 fi
 
 if [[ $cleanup == "y" ]] ; then
@@ -340,11 +354,11 @@ echo # Running repeatmasker annotation
 echo ############################################
 purple_annotated_vcf=${purple_raw_vcf/.purple.sv.vcf/.purple.ann.sv.vcf}
 
-Rscript $hmf_scripts/gridss/gridss_annotate_insertions_repeatmaster.R \
+Rscript /opt/gridss/gridss_annotate_insertions_repeatmaster.R \
 	--input $purple_raw_vcf.gz \
 	--output $purple_annotated_vcf \
 	--repeatmasker $repeatmasker \
-	--scriptdir $hmf_scripts/gridss/
+	--scriptdir /opt/gridss/
 mv ${purple_annotated_vcf}.bgz ${purple_annotated_vcf}.gz
 mv ${purple_annotated_vcf}.bgz.tbi ${purple_annotated_vcf}.gz.tbi
 
@@ -353,13 +367,6 @@ echo # Running Linx
 echo ############################################
 
 
-
-echo ############################################
-echo # Driver Catalog
-echo ############################################
-
-
-# Check 
 
 
 

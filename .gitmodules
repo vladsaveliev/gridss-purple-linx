@@ -1,9 +1,3 @@
-[submodule "external/gridss"]
-	path = external/gridss
-	url = https://github.com/PapenfussLab/gridss
-[submodule "external/scripts"]
-	path = external/scripts
-	url = https://github.com/hartwigmedical/scripts
 [submodule "external/hmftools"]
 	path = external/hmftools
 	url = https://github.com/hartwigmedical/hmftools

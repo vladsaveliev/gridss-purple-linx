@@ -16,7 +16,7 @@ LABEL about.summary="GRIDSS PURPLE LINX"
 LABEL about.home="https://github.com/hartwigmedical/gridss-purple-linx"
 LABEL about.tags="Genomics"
 
-RUN mkdir /opt/hmftools
+RUN mkdir /opt/hmftools /opt/gridss-purple-linx
 ENV AMBER_VERSION=2.5
 ENV COBALT_VERSION=1.7
 ENV PURPLE_VERSION=2.33
@@ -31,7 +31,7 @@ COPY external/hmftools/amber/target/amber-${AMBER_VERSION}-jar-with-dependencies
 COPY external/hmftools/count-bam-lines/target/count-bam-lines-${COBALT_VERSION}-jar-with-dependencies.jar /opt/hmftools
 COPY external/hmftools/purity-ploidy-estimator/target/purity-ploidy-estimator-${PURPLE_VERSION}-jar-with-dependencies.jar /opt/hmftools
 COPY external/hmftools/sv-linx/target/sv-linx-${LINX_VERSION}-jar-with-dependencies.jar /opt/hmftools
-COPY gridss-purple-linx.sh /scripts/
+COPY gridss-purple-linx.sh /opt/gridss-purple-linx/
 
-ENTRYPOINT ["/scripts/gridss-purple-linx.sh"]
+ENTRYPOINT ["/opt/gridss-purple-linx/gridss-purple-linx.sh"]
 

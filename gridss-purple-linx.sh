@@ -13,7 +13,7 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
 fi
 
 OPTIONS=v:o:t:n:s:r:b:
-LONGOPTS=snvvcf,output_dir:tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:
+LONGOPTS=snvvcf,output_dir:tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:,referencename:
 ! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
 	# e.g. return value is 1
@@ -25,11 +25,13 @@ run_dir="/data"
 ref_dir="/refdata"
 tumour_bam=""
 normal_bam=""
-snvindel_vcf=""
+snvvcf=""
 threads=$(nproc)
 sample=""
 cleanup="y"
 jvmheap="25g"
+referencename="hg19"
+rlib=$ref_dir/rlib/
 ref_genome=$ref_dir/refgenomes/Homo_sapiens.GRCh37.GATK.illumina/Homo_sapiens.GRCh37.GATK.illumina.fasta
 viralreference=$ref_dir/refgenomes/human_virus/human_virus.fa
 blacklist=$ref_dir/dbs/gridss/ENCFF001TDO.bed
@@ -40,11 +42,15 @@ gridsspon=$ref_dir/dbs/gridss/pon3792v1
 while true; do
 	case "$1" in
 		-v|--snvvcf)
-			snvindel_vcf="$2"
+			snvvcf="$2"
 			shift 2
 			;;
 		--viralreference)
 			viralreference="$2"
+			shift 2
+			;;
+		--referencename)
+			referencename="$2"
 			shift 2
 			;;
 		-b|--blacklist)
@@ -109,7 +115,7 @@ usage() {
 	echo "Usage: gridss-purple-linx.sh" 1>&2
 	echo "" 1>&2
 	echo "Required command line arguments:" 1>&2
-	echo "	--snvvcf: A somatic SNV VCF with the AD genotype field populated." 1>&2
+#	echo "	--snvvcf: A somatic SNV VCF with the AD genotype field populated." 1>&2
 	echo "	--output_dir: output directory." 1>&2
 	echo "	--tumour_bam: tumour BAM file" 1>&2
 	echo "	--normal_bam: matched normal BAM file" 1>&2
@@ -124,6 +130,7 @@ usage() {
 	echo "	--gcprofile: .cnp file of GC in reference genome. 1k bins." 1>&2
 	echo "	--gridsspon: GRIDSS PON" 1>&2
 	echo "	--viralreference: viral reference database (fasta format)" 1>&2
+	echo "	--rlib: R library path that include correct BSgenome package" 1>&2
 	echo "" 1>&2
 	exit 1
 }
@@ -142,7 +149,9 @@ assert_directory_exists() {
 		exit 1
 	fi
 }
-assert_file_exists $snvindel_vcf "snvvcf"
+if [[ ! -z "$snvvcf" ]] ; then
+	assert_file_exists $snvvcf "snvvcf"
+fi
 assert_file_exists $ref_genome "reference"
 assert_file_exists $repeatmasker "repeatmasker"
 assert_file_exists $gcprofile "gcprofile"
@@ -151,7 +160,7 @@ assert_file_exists $viralreference "viralreference"
 assert_directory_exists $gridsspon "gridsspon"
 
 
-if [[ ! -f "$snvindel_vcf" ]] ; then
+if [[ ! -f "$snvvcf" ]] ; then
 	echo "Missing SNV VCF. A SNV VCF with the AD genotype field populated is required."
 	echo "Use the script for generating this VCF with strelka if you have not already generated a compatible VCF."
 	exit 1
@@ -184,6 +193,7 @@ if [[ "$threads" -lt 1 ]] ; then
 	echo "Illegal thread count: $threads"
 	exit 1
 fi
+export R_LIBS="$rlib:$R_LIBS"
 
 joint_sample_name=$sample
 normal_sample=${sample}_N
@@ -262,7 +272,7 @@ else
 	echo "Found $gridss_raw_vcf, skipping GRIDSS" 
 fi
 if [[ ! -f $gridss_raw_vcf ]] ; then
-	echo "Error creating $gridss_raw_vcf. Aborting" 2>&1
+	echo "Error creating $gridss_raw_vcf. Aborting" 1>&2
 	exit 1
 fi
 if [[ ! -f $gridss_somatic_vcf ]] ; then
@@ -300,6 +310,7 @@ if [[ ! -f $gridss_somatic_vcf ]] ; then
 		-i $gridss_decompressed_vcf \
 		-o ${gridss_somatic_vcf} \
 		-f ${gridss_somatic_full_vcf} \
+		-r BSgenome.Hsapiens.UCSC.$referencename \
 		-s /opt/gridss/ \
 		--gc \
 		2>&1 | tee -a $log_prefix.gridss.somatic_filter.log
@@ -314,75 +325,91 @@ else
 	echo "Found $gridss_somatic_vcf, skipping GRIDSS post-processing" 
 fi
 if [[ ! -f $gridss_somatic_vcf ]] ; then
-	echo "Error creating $gridss_somatic_vcf. Aborting" 2>&1
+	echo "Error creating $gridss_somatic_vcf. Aborting" 1>&2
 	exit 1
 fi
 echo ############################################
 echo # Running Amber
 echo ############################################
 mkdir -p $run_dir/amber
-
-java -Xmx10G $jvm_args \
-	-jar $amber_jar \
-	-threads $threads \
-	-tumor $tumour_sample \
-	-reference $normal_sample \
-	-tumor_bam $tumour_bam \
-	-reference_bam $normal_bam \
-	-bed $bafsnps \
-	-ref_genome $ref_genome \
-	-output_dir $run_dir/amber
-
-if [[ ! -f $run_dir/amber/$tumour_sample.amber.qc ]] ; then
+if [[ ! -f $run_dir/amber/$tumour_sample.amber.baf.vcf.gz ]] ; then
+	java -Xmx10G $jvm_args \
+		-jar $amber_jar \
+		-threads $threads \
+		-tumor $tumour_sample \
+		-reference $normal_sample \
+		-tumor_bam $tumour_bam \
+		-reference_bam $normal_bam \
+		-bed $bafsnps \
+		-ref_genome $ref_genome \
+		-output_dir $run_dir/amber 2>&1 | tee $log_prefix.amber.log
+else
+	echo "Found $run_dir/amber/$tumour_sample.amber.baf.vcf.gz. Skipping amber." 1>&2
+fi
+if [[ ! -f $run_dir/amber/$tumour_sample.amber.baf.vcf.gz ]] ; then
 	echo "Error running amber. Aborting" 2>&1
 	exit 1
-fi
-
-if [[ $cleanup == "y" ]] ; then
-	rm $run_dir/amber/*.pcf1
 fi
 
 echo ############################################
 echo # Running Cobalt
 echo ############################################
 mkdir -p $run_dir/cobalt
-java -Xmx10G $jvm_args \
-	-jar $cobalt_jar \
-	-threads $threads \
-	-reference $normal_sample \
-	-reference_bam $normal_bam \
-	-tumour $joint_sample_name \
-	-tumour_bam $tumour_bam \
-	-output_dir $run_dir/cobalt \
-	-gcprofile $gcprofile \
-	2>&1 | tee $log_prefix.cobalt.log
-
-exit 1
-if [[ ! -f #TODO ]] ; then
-	echo "Error creating $amber_baf. Aborting" 2>&1
+if [[ ! -f $run_dir/cobalt/$tumour_sample.cobalt.ratio.pcf ]] ; then
+	java -Xmx10G $jvm_args \
+		-cp $cobalt_jar \
+		com.hartwig.hmftools.cobalt.CountBamLinesApplication \
+		-threads $threads \
+		-reference $normal_sample \
+		-reference_bam $normal_bam \
+		-tumor $tumour_sample \
+		-tumor_bam $tumour_bam \
+		-output_dir $run_dir/cobalt \
+		-gc_profile $gcprofile \
+		2>&1 | tee $log_prefix.cobalt.log
 fi
-
+if [[ ! -f $run_dir/cobalt/$tumour_sample.cobalt.ratio.pcf ]] ; then
+	echo "Error running cobalt. Aborting" 2>&1
+	exit 1
+fi
 	
-if [[ $cleanup == "y" ]] ; then
-	rm -f $run_dir/cobalt/*.pcf1 $run_dir/cobalt/*.ratio $run_dir/cobalt/*.ratio.gc $run_dir/cobalt/*.count
-fi
+#if [[ $cleanup == "y" ]] ; then
+#	rm -f $run_dir/cobalt/*.pcf1 $run_dir/cobalt/*.ratio $run_dir/cobalt/*.ratio.gc $run_dir/cobalt/*.count
+#fi
 
 echo ############################################
 echo # Running PURPLE
 echo ############################################
-purple_output=${run_dir}/purple
+mkdir -p $run_dir/purple
 
-java -Dorg.jooq.no-logo=true $JVM_MEMORY_USAGE_ARGS \
-	-jar ${purple_jar} \
-	-somatic_vcf $somatic_vcf \
-	-structural_vcf $gridss_somatic_vcf.gz \
+if [[ -f "$snvvcf" ]] ; then
+	java -Dorg.jooq.no-logo=true -Xmx10G $jvm_args \
+		-jar ${purple_jar} \
+		-reference $normal_sample \
+		-tumor $tumour_sample \
+		-amber $run_dir/amber \
+		-cobalt $run_dir/cobalt \
+		-gc_profile $gcprofile \
+		-ref_genome $ref_genome \
+		-structural_vcf /path/to/COLO829/COLO829.sv.vcf.gz \
+		-sv_recovery_vcf /path/to/COLO829/COLO829.sv.all.vcf.gz \
+		-circos circos \
+		-somatic_vcf $snvvcf
+else
+
+fi
+	
+	-somatic_vcf $run_dir/amber/$tumour_sample.amber.baf.vcf.gz \
+	-structural_vcf $gridss_somatic_vcf \
 	-circos circos \
 	-run_dir ${run_dir} \
 	-ref_genome hg19 \
 	-cobalt $run_dir/cobalt \
-	-output_dir ${purple_output} \
+	-output_dir $run_dir/purple \
 	-gcprofile ${gcprofile} \
-	-sv_recovery_vcf $gridss_somatic_full_vcf.gz
+	-sv_recovery_vcf $gridss_somatic_full_vcf
+
+exit 1
 purple_raw_vcf=$purple_output/????TODO????*.purple.sv.vcf.gz
 
 echo ############################################

@@ -1,9 +1,17 @@
 FROM gridss/gridss:2.5.2
 LABEL base.image="gridss/gridss:2.5.2"
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y circos pkg-config libgd-dev
-
-# circos perl packages
+# circos installation
+# not using the ubuntu circos package as it places the conf files in /etc/circos which breaks << include etc/*.conf >> as CIRCOS_PATH/etc/circos is not on the circos search path
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y wget pkg-config libgd-dev
+ENV CIRCOS_VERSION=0.69-9
+RUN mkdir /opt/circos && \
+	cd /opt/circos && \
+	wget http://circos.ca/distribution/circos-${CIRCOS_VERSION}.tgz && \
+	tar zxvf circos-${CIRCOS_VERSION}.tgz && \
+	rm circos-${CIRCOS_VERSION}.tgz
+ENV CIRCOS_HOME=/opt/circos/circos-${CIRCOS_VERSION}
+ENV PATH=${CIRCOS_HOME}/bin:${PATH}
 RUN cpan App::cpanminus
 RUN cpanm List::MoreUtils Math::Bezier Math::Round Math::VecStat Params::Validate Readonly Regexp::Common SVG Set::IntSpan Statistics::Basic Text::Format Clone Config::General Font::TTF::Font GD
 

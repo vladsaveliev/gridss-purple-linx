@@ -15,9 +15,15 @@ CMD=$(echo docker run \
 	-s colo829
 )
 echo $CMD
-
-docker run --ulimit nofile=100000:100000 -v d:/dev/gridss-purple-linx/refdata/hg19:/refdata -v d:/colo829:/data/ gridss/gridss-purple-linx:latest -n /data/COLO829R_dedup.realigned.bam -t /data/COLO829T_dedup.realigned.bam -v /data/COLO829v003T.somatic_caller_post_processed.vcf.gz -s colo829
-docker run -it --entrypoint /bin/bash --ulimit nofile=100000:100000 -v d:/dev/gridss-purple-linx/refdata/hg19:/refdata -v d:/colo829:/data/ gridss/gridss-purple-linx:latest
+exit 0
+docker build --tag gridss/gridss-purple-linx:latest . && docker run --ulimit nofile=100000:100000 \
+	-v s:/refdata/hg19:/refdata \
+	-v s:/colo829:/data/ gridss/gridss-purple-linx:latest \
+	-n /data/COLO829R_dedup.realigned.bam \
+	-t /data/COLO829T_dedup.realigned.bam \
+	-v /data/COLO829v003T.somatic_caller_post_processed.vcf.gz \
+	-s colo829
+docker run -it --entrypoint /bin/bash --ulimit nofile=100000:100000 -v s:/refdata/hg19:/refdata -v s:/colo829:/data/ gridss/gridss-purple-linx:latest
 
 # from command line
 export AMBER_VERSION=2.5

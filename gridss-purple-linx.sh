@@ -497,8 +497,10 @@ echo # Running Linx
 echo ############################################
 mkdir -p $run_dir/linx
 java -Xmx8G -Xms4G -jar $LINX_JAR \
-	-sample $joint_sample_name \
+	-ref_genome $ref_genome \
+	-sample $tumour_sample \
 	-purple_dir $run_dir/purple \
+	-sv_vcf $run_dir/purple/$tumour_sample.purple.sv.vcf.gz \
 	-output_dir $run_dir/linx \
 	-fragile_site_file ${fragile_sites} \
 	-line_element_file ${line_elements} \
@@ -509,9 +511,21 @@ java -Xmx8G -Xms4G -jar $LINX_JAR \
 	-fusion_pairs_csv ${fusion_pairs_csv} \
 	-promiscuous_five_csv ${promiscuous_five_csv} \
 	-promiscuous_three_csv ${promiscuous_three_csv} \
-	-write_vis_data \
-	-proximity_distance 5000 \
-	-chaining_sv_limit 0
+	-write_vis_data
+#	-check_drivers \
+#	-gcn_data_file \
+
+java -cp $LINX_JAR com.hartwig.hmftools.linx.visualiser.SvVisualiser \
+	-sample $tumour_sample \
+	-plot_out $run_dir/linx/plot/ \
+	-data_out $run_dir/linx/circos/ \
+	-segment $run_dir/linx/$tumour_sample.linx.vis_segments.tsv \
+	-link $run_dir/linx/$tumour_sample.linx.vis_sv_data.tsv \
+	-exon $run_dir/linx/$tumour_sample.linx.vis_gene_exon.tsv \
+	-cna $run_dir/linx/$tumour_sample.linx.vis_copy_number.tsv \
+	-protein_domain $run_dir/linx/$tumour_sample.linx.vis_protein_domain.tsv \
+	-fusion $run_dir/linx/$tumour_sample.linx.fusions_detailed.csv \
+	-circos circos
 
 
 

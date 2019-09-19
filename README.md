@@ -181,14 +181,14 @@ To run the toolkit directly, one would use the following command-line:
 
 ```
 /home/user/gridss-purple-linx/gridss-purple-linx.sh \
-  -n /home/user/colo829_example/COLO829R_dedup.realigned.bam \
+	-n /home/user/colo829_example/COLO829R_dedup.realigned.bam \
 	-t /home/user/colo829_example/COLO829T_dedup.realigned.bam \
 	-v /home/user/colo829_example/gridss-purple-linx-latest.vcf \
 	-s COLO829 \
 	--snvvcf /home/user/colo829_example/COLO829.somatic_caller_post_processed.vcf.gz \
-  --ref_dir /home/user/refdata \
-  --install_dir /home/user/gridss-purple-linx/ \
-  --rundir /home/user/colo829_example
+	--ref_dir /home/user/refdata \
+	--install_dir /home/user/gridss-purple-linx/ \
+	--rundir /home/user/colo829_example
 ```
 
 ## Outputs

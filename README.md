@@ -112,6 +112,7 @@ These reference data paths are all relative to `--ref_dir`.
 The default values match those required of the hg19 reference data.
 
 |Argument|Description|Default|
+|---|---|---|
 |--reference|reference genome|refgenomes/Homo_sapiens.GRCh37.GATK.illumina/Homo_sapiens.GRCh37.GATK.illumina.fasta|
 |--repeatmasker|repeatmasker .fa.out file for reference genome|refgenomes/dbs/repeatmasker/hg19.fa.out|
 |--blacklist|Blacklisted regions|dbs/gridss/ENCFF001TDO.bed|

@@ -3,7 +3,7 @@ LABEL base.image="gridss/gridss:2.6.0"
 
 # circos installation
 # not using the ubuntu circos package as it places the conf files in /etc/circos which breaks << include etc/*.conf >> as CIRCOS_PATH/etc/circos is not on the circos search path
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y wget pkg-config libgd-dev
+RUN apt-get update; DEBIAN_FRONTEND=noninteractive apt-get install -y wget pkg-config libgd-dev
 ENV CIRCOS_VERSION=0.69-9
 RUN mkdir /opt/circos && \
 	cd /opt/circos && \

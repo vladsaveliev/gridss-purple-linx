@@ -132,9 +132,74 @@ The default values match those required of the hg19 reference data.
 |--install_dir|root directory of gridss-purple-linx release package|/opt/|
 
 
-## Docker image
-Docker image
+## Example Usage (COLO829 cell line)
 
-This simplest way to run the pipeline is through the docker image.
+Let us assume the following:
 
-# 
+1) Your sample is in /home/user/colo829_example
+
+|File|Description|
+|---|---|
+|COLO829T_dedup.realigned.bam|Tumour sample (COLO829T cell line)|
+|COLO829T_dedup.realigned.bam.bai|BAM index|
+|COLO829R_dedup.realigned.bam|Matched normal (COLO829BL cell line)|
+|COLO829R_dedup.realigned.bam.bai|BAM index|
+|COLO829.somatic_caller_post_processed.vcf.gz|strelka somatic calls|
+
+and your stelka somatic sample name is COLO829_T
+
+2) You have downloaded and decompressed the hg19 reference `gridss-purple-linx-docker-image-refdata-hg19.tar.gz` to `/home/user/refdata/`
+
+3) You have downloaded the gridss-purple-linx release to `/home/user/gridss-purple-linx/` (Not required if using docker image)
+
+### Docker
+
+This simplest way to run the pipeline is through the docker image. The docker images assumes the following:
+
+- The reference data is mounted read/write in `/refdata`
+- The input/output directory is  mounted read/write in `/data`
+
+To run the docker image on the above example, the following docker command line would be used:
+
+```
+docker run --ulimit nofile=100000:100000 \
+	-v /home/user/refdata/:/refdata \
+	-v /home/user/colo829_example/data/ \
+	gridss/gridss-purple-linx:latest \
+	-n /data/COLO829R_dedup.realigned.bam \
+	-t /data/COLO829T_dedup.realigned.bam \
+	-v /data/gridss-purple-linx-latest.vcf \
+	-s COLO829 \
+	--snvvcf /data/COLO829.somatic_caller_post_processed.vcf.gz
+```
+
+The ulimit increase is due to GRIDSS multi-threading using many file handles.
+
+### Directly
+
+To run the toolkit directly, one would use the following command-line:
+
+```
+/home/user/gridss-purple-linx/gridss-purple-linx.sh \
+  -n /home/user/colo829_example/COLO829R_dedup.realigned.bam \
+	-t /home/user/colo829_example/COLO829T_dedup.realigned.bam \
+	-v /home/user/colo829_example/gridss-purple-linx-latest.vcf \
+	-s COLO829 \
+	--snvvcf /home/user/colo829_example/COLO829.somatic_caller_post_processed.vcf.gz \
+  --ref_dir /home/user/refdata \
+  --install_dir /home/user/gridss-purple-linx/ \
+  --rundir /home/user/colo829_example
+```
+
+## Outputs
+
+Outputs are located in subdirectories of `--output_dir` corresponding to each of the tools. Consult the tool documentation for details of the output file formats:
+
+- GRIDSS: https://github.com/PapenfussLab/gridss
+- PURPLE: https://github.com/hartwigmedical/hmftools/tree/master/purity-ploidy-estimator
+- LINX: https://github.com/hartwigmedical/hmftools/tree/master/sv-linx
+
+## Memory/CPU usage
+
+Running it's default settings, the pipeline will use 25GB of memory and as many cores are available for the multi-threaded stages (such as GRIDSS assembly and variant calling). These can be overridden using the `--jvmheap` and `--threads` argumennts. A minimum of 14GB of memory is required and at least 3GB per core should be allocated. Recommended settings are 8 threads and 25gb heap size (actual memory usage will be slightly higher than heap size).
+

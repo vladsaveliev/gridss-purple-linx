@@ -47,12 +47,11 @@ usage() {
 	echo "Usage: gridss-purple-linx.sh" 1>&2
 	echo "" 1>&2
 	echo "Required command line arguments:" 1>&2
-	echo "	--output_dir: output directory." 1>&2
 	echo "	--tumour_bam: tumour BAM file" 1>&2
 	echo "	--normal_bam: matched normal BAM file" 1>&2
 	echo "	--sample: sample name" 1>&2
 	echo "Optional parameters:" 1>&2
-	echo "	--rundir: (default: /data)" 1>&2
+	echo "	--output_dir: output directory. (default: /data)" 1>&2
 	echo "	--install_dir: root directory of gridss-purple-linx release (default: /opt/)" 1>&2
 	echo "	--snvvcf: A somatic SNV VCF with the AD genotype field populated." 1>&2
 	echo "	--nosnvvcf: Indicates a somatic SNV VCF will not be supplied. This will reduce the accuracy of PURPLE ASCN." 1>&2
@@ -82,7 +81,7 @@ usage() {
 }
 
 OPTIONS=v:o:t:n:s:r:b:
-LONGOPTS=snvvcf:,nosnvvcf,output_dir:tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:,referencename:,rundir:,viral_hosts_csv:,fusion_pairs_csv:,promiscuous_five_csv:,promiscuous_three_csv:,fragile_sites:,line_elements:,replication_origins:,ensembl_data_dir:,normal_sample:,tumour_sample:,
+LONGOPTS=snvvcf:,nosnvvcf,output_dir:tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:,referencename:,viral_hosts_csv:,fusion_pairs_csv:,promiscuous_five_csv:,promiscuous_three_csv:,fragile_sites:,line_elements:,replication_origins:,ensembl_data_dir:,normal_sample:,tumour_sample:,install_dir:
 ! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
 	# e.g. return value is 1
@@ -193,7 +192,7 @@ while true; do
 			shift 2
 			;;
 		--repeatmasker)
-			repeatmasker=$2
+			repeatmasker="$2"
 			shift 2
 			;;
 		--jvmheap)
@@ -202,6 +201,10 @@ while true; do
 			;;
 		--install_dir)
 			install_dir="$2"
+			shift 2
+			;;
+		--ref_dir)
+			ref_dir="$2"
 			shift 2
 			;;
 		--)
@@ -226,7 +229,6 @@ assert_file_exists() {
 assert_directory_exists() {
 	if [[ ! -d "$1" ]] ; then
 		echo "Directory $1 not found. Specify using the command line argument --$2" 1>&2
-		echo "${!env_name}"
 		exit 1
 	fi
 }
@@ -267,44 +269,47 @@ assert_directory_exists $gridsspon "gridsspon"
 if [[ "$snvvcf" == "nosnvvcf" ]] ; then
 	echo "No somatic SNV VCF supplied."
 elif [[ ! -f "$snvvcf" ]] ; then
-	echo "Missing somatic SNV VCF. A SNV VCF with the AD genotype field populated is required."
-	echo "Use the script for generating this VCF with strelka if you have not already generated a compatible VCF."
+	echo "Missing somatic SNV VCF. A SNV VCF with the AD genotype field populated is required." 1>&2
+	echo "Use the script for generating this VCF with strelka if you have not already generated a compatible VCF." 1>&2
 	exit 1
 fi
 if [[ ! -f "$tumour_bam" ]] ; then
-	echo "Missing tumour BAM"
+	echo "Missing tumour BAM" 1>&2
 	exit 1
 fi
 if [[ ! -f "$normal_bam" ]] ; then
-	echo "Missing normal BAM"
+	echo "Missing normal BAM" 1>&2
 	exit 1
 fi
 mkdir -p "$run_dir"
 if [[ ! -d "$run_dir" ]] ; then
-	echo "Unable to create $run_dir"
+	echo "Unable to create $run_dir" 1>&2
 	exit 1
 fi
 if [[ ! -d "$ref_dir" ]] ; then
-	echo "Could not find reference data directory $ref_dir"
+	echo "Could not find reference data directory $ref_dir" 1>&2
 	exit 1
 fi
 if [[ ! -f "$ref_genome" ]] ; then
-	echo "Missing reference genome $ref_genome - specify with -r "
+	echo "Missing reference genome $ref_genome - specify with -r " 1>&2
 	exit 1
 fi
 if [[ -z "$sample" ]] ; then
 	sample=$(basename $tumour_bam .bam)
 fi
 if [[ "$threads" -lt 1 ]] ; then
-	echo "Illegal thread count: $threads"
+	echo "Illegal thread count: $threads" 1>&2
 	exit 1
 fi
-export R_LIBS="$rlib:${R_LIBS:-}"
-
 joint_sample_name=$sample
-normal_sample=${sample}_N
-tumour_sample=${sample}_T
+if [[ -z "$normal_sample" ]] ; then
+	normal_sample=${sample}_N
+fi
+if [[ -z "$tumour_sample" ]] ; then
+	tumour_sample=${sample}_T
+fi
 
+export R_LIBS="$rlib:${R_LIBS:-}"
 base_path=$(dirname $(readlink $0 || echo $0))
 ### Find the jars
 find_jar() {
@@ -324,19 +329,30 @@ linx_jar=$(find_jar LINX_JAR sv-linx)
 
 for program in bwa sambamba samtools circos Rscript java ; do
 	if ! which $program > /dev/null ; then
-		echo "Missing required dependency $program. $program must be on PATH"
+		echo "Missing required dependency $program. $program must be on PATH" 1>&2
 		exit 1
 	fi
 done
 for rpackage in tidyverse devtools assertthat testthat NMF stringdist stringr argparser R.cache "copynumber" StructuralVariantAnnotation "VariantAnnotation" "rtracklayer" "BSgenome" "org.Hs.eg.db" ; do
 	if ! Rscript -e "installed.packages()" | grep $rpackage > /dev/null ; then
-		echo "Missing R package $rpackage"
+		echo "Missing R package $rpackage" 1>&2
 		exit 1
 	fi
 done
 
 if ! java -Xms$jvmheap -cp $gridss_jar gridss.Echo ; then
-	echo "Failure invoking java with --jvmheap parameter of \"$jvmheap\". Specify a JVM heap size (e.g. \"20g\") that is valid for this machine."
+	echo "Failure invoking java with --jvmheap parameter of \"$jvmheap\". Specify a JVM heap size (e.g. \"20g\") that is valid for this machine." 1>&2
+	exit 1
+fi
+
+if [[ ! -s $ref_genome.bwt ]] ; then
+	echo "Missing bwa index for $ref_genome. Creating (this is a once-off initialisation step)" 1>&2
+	bwa index $ref_genome
+fi
+
+if [[ ! -s $ref_genome.bwt ]] ; then
+	echo "bwa index for $ref_genome not found." 1>&2
+	echo "If you are running in a docker container, make sure refdata has been mounted read-write." 1>&2
 	exit 1
 fi
 
@@ -559,9 +575,8 @@ java -Xmx8G -Xms4G -jar $LINX_JAR \
 	-fusion_pairs_csv ${fusion_pairs_csv} \
 	-promiscuous_five_csv ${promiscuous_five_csv} \
 	-promiscuous_three_csv ${promiscuous_three_csv} \
-	-write_vis_data
-#	-check_drivers \
-#	-gcn_data_file \
+	-write_vis_data \
+	-check_drivers
 
 java -cp $LINX_JAR com.hartwig.hmftools.linx.visualiser.SvVisualiser \
 	-sample $tumour_sample \
@@ -573,7 +588,8 @@ java -cp $LINX_JAR com.hartwig.hmftools.linx.visualiser.SvVisualiser \
 	-cna $run_dir/linx/$tumour_sample.linx.vis_copy_number.tsv \
 	-protein_domain $run_dir/linx/$tumour_sample.linx.vis_protein_domain.tsv \
 	-fusion $run_dir/linx/$tumour_sample.linx.fusions_detailed.csv \
-	-circos circos
+	-circos circos \
+	-threads $threads
 
 
 

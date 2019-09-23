@@ -1,8 +1,8 @@
 #!/bin/bash
 
 docker run --ulimit nofile=100000:100000 \
-	-v d:/refdata/hg19:/refdata \
-	-v d:/colo829:/data/ \
+	-v s:/refdata/hg19:/refdata \
+	-v s:/colo829:/data/ \
 	gridss/gridss-purple-linx:latest \
 	-n /data/COLO829R_dedup.realigned.bam \
 	-t /data/COLO829T_dedup.realigned.bam \

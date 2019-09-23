@@ -1,6 +1,2 @@
 **
-!/gridss-purple-linx.sh
-!/external/hmftools/amber/target/*-jar-with-dependencies.jar
-!/external/hmftools/count-bam-lines/target/*-jar-with-dependencies.jar
-!/external/hmftools/purity-ploidy-estimator/target/*-jar-with-dependencies.jar
-!/external/hmftools/sv-linx/target/*-jar-with-dependencies.jar
+!/package

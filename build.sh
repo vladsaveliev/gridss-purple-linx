@@ -1,5 +1,5 @@
 #!/bin/bash
-(cd external/hmftools; mvn -T 1C clean package )
+./package.sh
 version=$(grep software.version Dockerfile | grep -oh '".*"' | tr -d \")
 docker build --tag gridss/gridss-purple-linx:$version .
 docker build --tag gridss/gridss-purple-linx:latest .

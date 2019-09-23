@@ -16,19 +16,20 @@ PURPLE_VERSION=$(grep "PURPLE_VERSION=" Dockerfile | cut -d "=" -f 2)
 LINX_VERSION=$(grep "LINX_VERSION=" Dockerfile | cut -d "=" -f 2)
 
 cd package/gridss
-wget https://github.com/PapenfussLab/gridss/releases/download/v$GRIDSS_VERSION/gridss-$GRIDSS_VERSION-gridss-jar-with-dependencies.jar
-wget https://github.com/PapenfussLab/gridss/releases/download/v$GRIDSS_VERSION/gridss.config.R
-wget https://github.com/PapenfussLab/gridss/releases/download/v$GRIDSS_VERSION/gridss.sh
-wget https://github.com/PapenfussLab/gridss/releases/download/v$GRIDSS_VERSION/gridss_annotate_insertions_repeatmaster.R
-wget https://github.com/PapenfussLab/gridss/releases/download/v$GRIDSS_VERSION/gridss_somatic_filter.R
-wget https://github.com/PapenfussLab/gridss/releases/download/v$GRIDSS_VERSION/libgridss.R
+wget https://github.com/PapenfussLab/gridss/releases/download/v$GRIDSS_VERSION/gridss-$GRIDSS_VERSION-gridss-jar-with-dependencies.jar &
+wget https://github.com/PapenfussLab/gridss/releases/download/v$GRIDSS_VERSION/gridss.config.R &
+wget https://github.com/PapenfussLab/gridss/releases/download/v$GRIDSS_VERSION/gridss.sh &
+wget https://github.com/PapenfussLab/gridss/releases/download/v$GRIDSS_VERSION/gridss_annotate_insertions_repeatmaster.R &
+wget https://github.com/PapenfussLab/gridss/releases/download/v$GRIDSS_VERSION/gridss_somatic_filter.R &
+wget https://github.com/PapenfussLab/gridss/releases/download/v$GRIDSS_VERSION/libgridss.R &
 cd -
 cd package/hmftools
-wget https://github.com/hartwigmedical/hmftools/releases/download/amber-v$AMBER_VERSION/amber-$AMBER_VERSION.jar
-wget https://github.com/hartwigmedical/hmftools/releases/download/cobalt-v$COBALT_VERSION/cobalt-$COBALT_VERSION.jar
-wget https://github.com/hartwigmedical/hmftools/releases/download/purple-v$PURPLE_VERSION/purple-$PURPLE_VERSION.jar
-wget https://github.com/hartwigmedical/hmftools/releases/download/sv-linx-v$LINX_VERSION/sv-linx_$LINX_VERSION.jar
+wget https://github.com/hartwigmedical/hmftools/releases/download/amber-v$AMBER_VERSION/amber-$AMBER_VERSION.jar &
+wget https://github.com/hartwigmedical/hmftools/releases/download/cobalt-v$COBALT_VERSION/cobalt-$COBALT_VERSION.jar &
+wget https://github.com/hartwigmedical/hmftools/releases/download/purple-v$PURPLE_VERSION/purple-$PURPLE_VERSION.jar &
+wget https://github.com/hartwigmedical/hmftools/releases/download/sv-linx-v$LINX_VERSION/sv-linx_$LINX_VERSION.jar &
 cd -
 cp gridss-purple-linx.sh package/gridss-purple-linx/
 cd package
-zip -r gridss-purple-linx-v$version.zip *
+wait
+tar -zcvf ../gridss-purple-linx-v$version.tgz .

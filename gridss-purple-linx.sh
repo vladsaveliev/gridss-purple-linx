@@ -387,6 +387,7 @@ if [[ ! -f $gridss_raw_vcf ]] ; then
 		-w $gridss_dir \
 		-j $gridss_jar \
 		-t $threads \
+		--jvmheap $jvmheap \
 		--labels "$normal_sample,$tumour_sample" \
 		$normal_bam \
 		$tumour_bam 2>&1 | tee $log_prefix/gridss.log

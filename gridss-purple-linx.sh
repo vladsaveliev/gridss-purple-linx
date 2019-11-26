@@ -188,7 +188,8 @@ while true; do
 			shift 2
 			;;
 		--threads)
-			threads=$(printf -v int '%d\n' "$2" 2>/dev/null)
+			printf -v threads '%d\n' "$2" 2>/dev/null
+			printf -v threads '%d' "$2" 2>/dev/null
 			shift 2
 			;;
 		--repeatmasker)

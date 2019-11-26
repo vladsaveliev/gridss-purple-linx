@@ -1,5 +1,5 @@
-FROM gridss/gridss:2.6.2
-LABEL base.image="gridss/gridss:2.6.2"
+FROM gridss/gridss:2.7.3
+LABEL base.image="gridss/gridss:2.7.3"
 
 RUN apt-get update; DEBIAN_FRONTEND=noninteractive apt-get install -y wget pkg-config libgd-dev libmagick++-dev ; apt-get clean ; rm -rf /var/lib/apt/lists/*
 
@@ -24,15 +24,15 @@ RUN Rscript -e 'options(Ncpus=16L, repos="https://cloud.r-project.org/");BiocMan
 
 LABEL version="1"
 LABEL software="GRIDSS PURPLE LINX"
-LABEL software.version="1.0.0"
+LABEL software.version="1.1.0"
 LABEL about.summary="Somatic GRIDSS/PURPLE/LINX SV/CNV detection and interpretation pipeline"
 LABEL about.home="https://github.com/hartwigmedical/gridss-purple-linx"
 LABEL about.tags="Genomics"
 
-ENV AMBER_VERSION=2.5
-ENV COBALT_VERSION=1.7
+ENV AMBER_VERSION=3.1
+ENV COBALT_VERSION=1.8
 ENV PURPLE_VERSION=2.34
-ENV LINX_VERSION=1.4
+ENV LINX_VERSION=1.6
 
 ENV AMBER_JAR=/opt/hmftools/amber-${AMBER_VERSION}.jar
 ENV COBALT_JAR=/opt/hmftools/cobalt-${COBALT_VERSION}.jar 

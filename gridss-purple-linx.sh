@@ -42,6 +42,7 @@ fragile_sites=dbs/sv/fragile_sites_hmf.csv
 line_elements=dbs/sv/line_elements.csv
 replication_origins=dbs/sv/heli_rep_origins.bed
 ensembl_data_dir=dbs/ensembl_data_cache
+picardoptions=""
 
 usage() {
 	echo "Usage: gridss-purple-linx.sh" 1>&2
@@ -81,7 +82,7 @@ usage() {
 }
 
 OPTIONS=v:o:t:n:s:r:b:
-LONGOPTS=snvvcf:,nosnvvcf,output_dir:tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:,referencename:,viral_hosts_csv:,fusion_pairs_csv:,promiscuous_five_csv:,promiscuous_three_csv:,fragile_sites:,line_elements:,replication_origins:,ensembl_data_dir:,normal_sample:,tumour_sample:,install_dir:
+LONGOPTS=snvvcf:,nosnvvcf,output_dir:tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:,referencename:,viral_hosts_csv:,fusion_pairs_csv:,promiscuous_five_csv:,promiscuous_three_csv:,fragile_sites:,line_elements:,replication_origins:,ensembl_data_dir:,normal_sample:,tumour_sample:,install_dir:,picardoptions:
 ! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
 	# e.g. return value is 1
@@ -206,6 +207,11 @@ while true; do
 			;;
 		--ref_dir)
 			ref_dir="$2"
+			shift 2
+			;;
+		--picardoptions)
+			# pass-through to gridss.sh argument of the same name
+			picardoptions="--picardoptions $2"
 			shift 2
 			;;
 		--)
@@ -390,7 +396,9 @@ if [[ ! -f $gridss_raw_vcf ]] ; then
 		-t $threads \
 		--labels "$normal_sample,$tumour_sample" \
 		$normal_bam \
-		$tumour_bam 2>&1 | tee $log_prefix/gridss.log
+		$tumour_bam \
+		$picardoptions \
+		2>&1 | tee $log_prefix/gridss.log
 else
 	echo "Found $gridss_raw_vcf, skipping GRIDSS" 
 fi

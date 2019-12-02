@@ -3,9 +3,9 @@
 
 The GRIDSS/PURPLE/LINX toolkit takes a pair of match tumour/normal BAM files, and performs somatic genomic rearrangement detection and classificatiion.
 
-- GRIDSS: performs structural variant calling
-- PURPLE: performs allele specific copy number calling
-- LINX: performs event classification, and visualisation
+- [GRIDSS](https://github.com/PapenfussLab/gridss): performs structural variant calling
+- [PURPLE](https://github.com/hartwigmedical/hmftools/tree/master/purity-ploidy-estimator): performs allele specific copy number calling
+- [LINX](https://github.com/hartwigmedical/hmftools/tree/master/sv-linx): performs event classification, and visualisation
 
 The simplest way to run the toolkit is through the docker image
 

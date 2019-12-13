@@ -425,7 +425,7 @@ gridss_decompressed_rmann_vcf=$gridss_dir/tmp.rmann.${joint_sample_name}.gridss.
 gridss_somatic_full_vcf=$gridss_dir/${tumour_sample}.gridss.full.somatic.vcf.gz
 gridss_somatic_vcf=$gridss_dir/${tumour_sample}.gridss.somatic.vcf.gz
 if [[ ! -f $gridss_raw_vcf ]] ; then
-	$install_dir/gridss.sh \
+	bash -x $install_dir/gridss.sh \
 		-b $blacklist \
 		-r $ref_genome \
 		-o $gridss_raw_vcf \

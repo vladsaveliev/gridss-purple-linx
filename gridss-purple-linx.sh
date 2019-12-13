@@ -251,13 +251,10 @@ assert_directory_exists() {
 	fi
 }
 assert_directory_exists $install_dir/gridss "install_dir"
-assert_directory_exists $install_dir/hmftools "install_dir"
-assert_directory_exists $install_dir/gridss-purple-linx "install_dir"
 assert_file_exists $install_dir/gridss/gridss.sh "install_dir"
 assert_file_exists $install_dir/gridss/gridss_somatic_filter.R "install_dir"
 assert_file_exists $install_dir/gridss/gridss_annotate_insertions_repeatmaster.R "install_dir"
 assert_file_exists $install_dir/gridss/libgridss.R "install_dir"
-assert_directory_exists $install_dir/gridss-purple-linx "install_dir"
 
 rlib=$ref_dir/$rlib
 ref_genome=$ref_dir/$ref_genome
@@ -334,7 +331,7 @@ find_jar() {
 	if [[ -f "${!env_name:-}" ]] ; then
 		echo "${!env_name}"
 	else
-		echo "Unable to find $2 jar. Specify using the environment variant $env_name" 1>&2
+		echo "Unable to find $2 jar. Specify using the environment variable $env_name" 1>&2
 		exit 1
 	fi
 }

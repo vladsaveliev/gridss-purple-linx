@@ -43,6 +43,7 @@ line_elements=dbs/sv/line_elements.csv
 replication_origins=dbs/sv/heli_rep_origins.bed
 ensembl_data_dir=dbs/ensembl_data_cache
 picardoptions=""
+gridss_steps="all"
 
 usage() {
 	echo "Usage: gridss-purple-linx.sh" 1>&2
@@ -77,12 +78,13 @@ usage() {
 	echo "	--line_elements: known LINE donor sites (default: dbs/sv/line_elements.csv)" 1>&2
 	echo "	--replication_origins: replication timing BED file (default: dbs/sv/heli_rep_origins.bed)" 1>&2
 	echo "	--ensembl_data_dir: ensemble data cache (default: dbs/ensembl_data_cache)" 1>&2
+	echo "  --gridss_steps: GRIDSS processing steps to run. One of all,preprocess,assemble,call. Propagated to gridss.sh" 1>&2
 	echo "" 1>&2
 	exit 1
 }
 
 OPTIONS=v:o:t:n:s:r:b:
-LONGOPTS=snvvcf:,nosnvvcf,output_dir:tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:,referencename:,viral_hosts_csv:,fusion_pairs_csv:,promiscuous_five_csv:,promiscuous_three_csv:,fragile_sites:,line_elements:,replication_origins:,ensembl_data_dir:,normal_sample:,tumour_sample:,install_dir:,picardoptions:
+LONGOPTS=snvvcf:,nosnvvcf,output_dir:tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:,referencename:,viral_hosts_csv:,fusion_pairs_csv:,promiscuous_five_csv:,promiscuous_three_csv:,fragile_sites:,line_elements:,replication_origins:,ensembl_data_dir:,normal_sample:,tumour_sample:,install_dir:,picardoptions:,gridss_steps:
 ! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
 	# e.g. return value is 1
@@ -208,6 +210,10 @@ while true; do
 		--picardoptions)
 			# pass-through to gridss.sh argument of the same name
 			picardoptions="--picardoptions $2"
+			shift 2
+			;;
+		--gridss_steps)
+			gridss_steps="$2"
 			shift 2
 			;;
 		--)
@@ -392,6 +398,7 @@ if [[ ! -f $gridss_raw_vcf ]] ; then
 		-t $threads \
 		--jvmheap $jvmheap \
 		--labels "$normal_sample,$tumour_sample" \
+		--steps $gridss_steps \
 		$normal_bam \
 		$tumour_bam \
 		$picardoptions \

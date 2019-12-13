@@ -250,11 +250,11 @@ assert_directory_exists() {
 		exit 1
 	fi
 }
-assert_directory_exists $install_dir/gridss "install_dir"
-assert_file_exists $install_dir/gridss/gridss.sh "install_dir"
-assert_file_exists $install_dir/gridss/gridss_somatic_filter.R "install_dir"
-assert_file_exists $install_dir/gridss/gridss_annotate_insertions_repeatmaster.R "install_dir"
-assert_file_exists $install_dir/gridss/libgridss.R "install_dir"
+assert_directory_exists $install_dir "install_dir"
+assert_file_exists $install_dir/gridss.sh "install_dir"
+assert_file_exists $install_dir/gridss_somatic_filter.R "install_dir"
+assert_file_exists $install_dir/gridss_annotate_insertions_repeatmaster.R "install_dir"
+assert_file_exists $install_dir/libgridss.R "install_dir"
 
 rlib=$ref_dir/$rlib
 ref_genome=$ref_dir/$ref_genome
@@ -425,7 +425,7 @@ gridss_decompressed_rmann_vcf=$gridss_dir/tmp.rmann.${joint_sample_name}.gridss.
 gridss_somatic_full_vcf=$gridss_dir/${tumour_sample}.gridss.full.somatic.vcf.gz
 gridss_somatic_vcf=$gridss_dir/${tumour_sample}.gridss.somatic.vcf.gz
 if [[ ! -f $gridss_raw_vcf ]] ; then
-	$install_dir/gridss/gridss.sh \
+	$install_dir/gridss.sh \
 		-b $blacklist \
 		-r $ref_genome \
 		-o $gridss_raw_vcf \
@@ -477,23 +477,23 @@ if [[ ! -f $gridss_somatic_vcf ]] ; then
 		# workaround for https://github.com/Bioconductor/VariantAnnotation/issues/19
 		rm -f $gridss_decompressed_vcf
 		gunzip -c $gridss_virann_vcf | awk ' { if (length($0) >= 4000) { gsub(":0.00:", ":0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000:")} ; print $0  } ' > $gridss_decompressed_vcf
-		Rscript $install_dir/gridss/gridss_annotate_insertions_repeatmaster.R \
+		Rscript $install_dir/gridss_annotate_insertions_repeatmaster.R \
 			--input $gridss_decompressed_vcf \
 			--output $gridss_decompressed_rmann_vcf \
 			--repeatmasker $repeatmasker \
-			--scriptdir $install_dir/gridss/  \
+			--scriptdir $install_dir/  \
 			2>&1 | tee -a $log_prefix.gridss.repeatannotate.log
 		if [[ -f $gridss_decompressed_rmann_vcf.bgz ]] ; then
 			gunzip -c $gridss_decompressed_rmann_vcf.bgz  | awk ' { if (length($0) >= 4000) { gsub(":0.00:", ":0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000:")} ; print $0  } ' > $gridss_decompressed_rmann_vcf
 		fi
 	fi
-	Rscript $install_dir/gridss/gridss_somatic_filter.R \
+	Rscript $install_dir/gridss_somatic_filter.R \
 		-p ${gridsspon} \
 		-i $gridss_decompressed_rmann_vcf \
 		-o ${gridss_somatic_vcf} \
 		-f ${gridss_somatic_full_vcf} \
 		-r BSgenome.Hsapiens.UCSC.$referencename \
-		-s $install_dir/gridss/ \
+		-s $install_dir/ \
 		--gc \
 		2>&1 | tee -a $log_prefix.gridss.somatic_filter.log
 	if [[ $cleanup == "y" ]] ; then

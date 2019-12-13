@@ -129,10 +129,6 @@ while true; do
 			ensembl_data_dir="$2"
 			shift 2
 			;;
-		--rundir)
-			run_dir="$2"
-			shift 2
-			;;
 		-v|--snvvcf)
 			snvvcf="$2"
 			shift 2

@@ -87,7 +87,7 @@ usage() {
 }
 
 OPTIONS=v:o:t:n:s:r:b:h
-LONGOPTS=snvvcf:,nosnvvcf,output_dir:tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:,referencename:,viral_hosts_csv:,fusion_pairs_csv:,promiscuous_five_csv:,promiscuous_three_csv:,fragile_sites:,line_elements:,replication_origins:,ensembl_data_dir:,normal_sample:,tumour_sample:,install_dir:,picardoptions:,validation_stringency:,gridss_steps:,help
+LONGOPTS=snvvcf:,nosnvvcf,output_dir:,tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:,referencename:,viral_hosts_csv:,fusion_pairs_csv:,promiscuous_five_csv:,promiscuous_three_csv:,fragile_sites:,line_elements:,replication_origins:,ensembl_data_dir:,normal_sample:,tumour_sample:,install_dir:,picardoptions:,validation_stringency:,gridss_steps:,help
 ! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
 	# e.g. return value is 1

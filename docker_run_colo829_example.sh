@@ -9,4 +9,4 @@ docker run --ulimit nofile=100000:100000 \
 	-v /data/gridss-purple-linx-latest.vcf \
 	-s colo829 \
 	--snvvcf /data/COLO829v003T.somatic_caller_post_processed.vcf.gz \
-	--jvmheap 15g \
+	--jvmheap 15g

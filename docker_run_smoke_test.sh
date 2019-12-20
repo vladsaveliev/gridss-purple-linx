@@ -7,6 +7,7 @@ docker run --ulimit nofile=100000:100000 \
 	-t /data/CPCT12345678T.bam \
 	-v /data/smoketest.vcf \
 	-s smoketest \
-	--snvvcf /data/COLO829v003T.somatic_caller_post_processed.vcf.gz \
+	--snvvcf /data/CPCT12345678T.somatic_caller_post_processed.vcf.gz \
 	--jvmheap 15g \
-	
+	-- validation_stringency LENIENT \
+

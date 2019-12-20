@@ -43,6 +43,7 @@ line_elements=dbs/sv/line_elements.csv
 replication_origins=dbs/sv/heli_rep_origins.bed
 ensembl_data_dir=dbs/ensembl_data_cache
 picardoptions=""
+validation_stringency="STRICT"
 
 usage() {
 	echo "Usage: gridss-purple-linx.sh" 1>&2
@@ -77,12 +78,13 @@ usage() {
 	echo "	--line_elements: known LINE donor sites (default: dbs/sv/line_elements.csv)" 1>&2
 	echo "	--replication_origins: replication timing BED file (default: dbs/sv/heli_rep_origins.bed)" 1>&2
 	echo "	--ensembl_data_dir: ensemble data cache (default: dbs/ensembl_data_cache)" 1>&2
+	echo "	--validation_stringency: htsjdk SAM/BAM validation level (STRICT (default), LENIENT, or SILENT)" 1>&2
 	echo "" 1>&2
 	exit 1
 }
 
 OPTIONS=v:o:t:n:s:r:b:
-LONGOPTS=snvvcf:,nosnvvcf,output_dir:tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:,referencename:,viral_hosts_csv:,fusion_pairs_csv:,promiscuous_five_csv:,promiscuous_three_csv:,fragile_sites:,line_elements:,replication_origins:,ensembl_data_dir:,normal_sample:,tumour_sample:,install_dir:,picardoptions:
+LONGOPTS=snvvcf:,nosnvvcf,output_dir:tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:,referencename:,viral_hosts_csv:,fusion_pairs_csv:,promiscuous_five_csv:,promiscuous_three_csv:,fragile_sites:,line_elements:,replication_origins:,ensembl_data_dir:,normal_sample:,tumour_sample:,install_dir:,picardoptions:,validation_stringency:
 ! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
 	# e.g. return value is 1
@@ -211,7 +213,11 @@ while true; do
 			;;
 		--picardoptions)
 			# pass-through to gridss.sh argument of the same name
-			picardoptions="--picardoptions $2"
+			picardoptions="$2"
+			shift 2
+			;;
+		--validation_stringency)
+			validation_stringency="$2"
 			shift 2
 			;;
 		--)
@@ -398,7 +404,7 @@ if [[ ! -f $gridss_raw_vcf ]] ; then
 		--labels "$normal_sample,$tumour_sample" \
 		$normal_bam \
 		$tumour_bam \
-		$picardoptions \
+		--picardoptions "VALIDATION_STRINGENCY=$validation_stringency $picardoptions" \
 		2>&1 | tee $log_prefix/gridss.log
 else
 	echo "Found $gridss_raw_vcf, skipping GRIDSS" 
@@ -483,8 +489,9 @@ if [[ ! -f $run_dir/amber/$tumour_sample.amber.baf.vcf.gz ]] ; then
 		-reference $normal_sample \
 		-tumor_bam $tumour_bam \
 		-reference_bam $normal_bam \
-		-bed $bafsnps \
+		-loci $bafsnps \
 		-ref_genome $ref_genome \
+		-validation_stringency $validation_stringency \
 		-output_dir $run_dir/amber 2>&1 | tee $log_prefix.amber.log
 else
 	echo "Found $run_dir/amber/$tumour_sample.amber.baf.vcf.gz. Skipping amber." 1>&2
@@ -509,6 +516,7 @@ if [[ ! -f $run_dir/cobalt/$tumour_sample.cobalt.ratio.pcf ]] ; then
 		-tumor_bam $tumour_bam \
 		-output_dir $run_dir/cobalt \
 		-gc_profile $gcprofile \
+		-validation_stringency $validation_stringency \
 		2>&1 | tee $log_prefix.cobalt.log
 else
 	echo "Found $run_dir/cobalt/$tumour_sample.cobalt.ratio.pcf. Skipping cobalt." 1>&2

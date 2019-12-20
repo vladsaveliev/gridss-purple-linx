@@ -259,7 +259,9 @@ assert_file_exists $install_dir/gridss_annotate_insertions_repeatmaster.R "insta
 assert_file_exists $install_dir/libgridss.R "install_dir"
 
 rlib=$ref_dir/$rlib
-ref_genome=$ref_dir/$ref_genome
+if echo "'$ref_genome' =~ /^\// and exit 1" | perl ; then
+    ref_genome=$ref_dir/$ref_genome
+fi
 viralreference=$ref_dir/$viralreference
 blacklist=$ref_dir/$blacklist
 repeatmasker=$ref_dir/$repeatmasker

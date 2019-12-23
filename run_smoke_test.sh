@@ -1,15 +1,17 @@
 #!/bin/bash
 
 # Local system locations
-install_dir=~/gridss-purple-linx
-ref_data=~/refdata
-data_dir=~/smoke_test
+install_dir=~/dev/gridss-purple-linx/package
+ref_data=~/refdata/hg19
+data_dir=$install_dir/../smoke_test
 
-GRIDSS_VERSION=2.6.2
-AMBER_VERSION=2.5
-COBALT_VERSION=1.7
-PURPLE_VERSION=2.34
-LINX_VERSION=1.4
+rm -r $data_dir/amber $data_dir/cobalt $data_dir/gridss $data_dir/logs $data_dir/purple
+
+GRIDSS_VERSION=$(grep "GRIDSS_VERSION=" ../gridss/Dockerfile | cut -d "=" -f 2)
+AMBER_VERSION=$(grep "AMBER_VERSION=" Dockerfile | cut -d "=" -f 2)
+COBALT_VERSION=$(grep "COBALT_VERSION=" Dockerfile | cut -d "=" -f 2)
+PURPLE_VERSION=$(grep "PURPLE_VERSION=" Dockerfile | cut -d "=" -f 2)
+LINX_VERSION=$(grep "LINX_VERSION=" Dockerfile | cut -d "=" -f 2)
 
 export GRIDSS_JAR=$install_dir/gridss/gridss-${GRIDSS_VERSION}-gridss-jar-with-dependencies.jar
 export AMBER_JAR=$install_dir/hmftools/amber-${AMBER_VERSION}.jar

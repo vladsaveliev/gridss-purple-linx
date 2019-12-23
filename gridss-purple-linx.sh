@@ -30,7 +30,7 @@ ref_genome=refgenomes/Homo_sapiens.GRCh37.GATK.illumina/Homo_sapiens.GRCh37.GATK
 viralreference=refgenomes/human_virus/human_virus.fa
 blacklist=dbs/gridss/ENCFF001TDO.bed
 repeatmasker=dbs/repeatmasker/hg19.fa.out
-bafsnps=dbs/germline_het_pon_hg19/GermlineHetPon.hg19.bed
+bafsnps=dbs/germline_het_pon_hg19/GermlineHetPon.hg19.vcf.gz
 gcprofile=dbs/gc/GC_profile.1000bp.cnp
 gridsspon=dbs/gridss/pon3792v1
 # LINX data files
@@ -321,7 +321,6 @@ fi
 if [[ -z "$tumour_sample" ]] ; then
 	tumour_sample=${sample}_T
 fi
-
 export R_LIBS="$rlib:${R_LIBS:-}"
 base_path=$(dirname $(readlink $0 || echo $0))
 ### Find the jars
@@ -378,6 +377,38 @@ jvm_args="
 	-Dsamjdk.use_async_io_write_samtools=true \
 	-Dsamjdk.use_async_io_write_tribble=true \
 	-Dsamjdk.buffer_size=4194304"
+
+timestamp=$(date +%Y%m%d_%H%M%S)
+echo [$timestamp] run_dir=$run_dir
+echo [$timestamp] ref_dir=$ref_dir
+echo [$timestamp] install_dir=$install_dir
+echo [$timestamp] tumour_bam=$tumour_bam
+echo [$timestamp] normal_bam=$normal_bam
+echo [$timestamp] snvvcf=$snvvcf
+echo [$timestamp] threads=$threads
+echo [$timestamp] sample=$sample
+echo [$timestamp] normal_sample=$normal_sample
+echo [$timestamp] tumour_sample=$tumour_sample
+echo [$timestamp] jvmheap=$jvmheap
+echo [$timestamp] referencename=$referencename
+echo [$timestamp] rlib=$rlib
+echo [$timestamp] ref_genome=$ref_genome
+echo [$timestamp] viralreference=$viralreference
+echo [$timestamp] blacklist=$blacklist
+echo [$timestamp] repeatmasker=$repeatmasker
+echo [$timestamp] bafsnps=$bafsnps
+echo [$timestamp] gcprofile=$gcprofile
+echo [$timestamp] gridsspon=$gridsspon
+echo [$timestamp] viral_hosts_csv=$viral_hosts_csv
+echo [$timestamp] fusion_pairs_csv=$fusion_pairs_csv
+echo [$timestamp] promiscuous_five_csv=$promiscuous_five_csv
+echo [$timestamp] promiscuous_three_csv=$promiscuous_three_csv
+echo [$timestamp] fragile_sites=$fragile_sites
+echo [$timestamp] line_elements=$line_elements
+echo [$timestamp] replication_origins=$replication_origins
+echo [$timestamp] ensembl_data_dir=$ensembl_data_dir
+echo [$timestamp] picardoptions=$picardoptions
+echo [$timestamp] validation_stringency=$validation_stringency
 
 echo ############################################
 echo # Running GRIDSS

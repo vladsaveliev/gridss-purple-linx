@@ -10,3 +10,4 @@ docker run --ulimit nofile=100000:100000 \
 	--tumour_sample colo829_T \
 	--snvvcf /data/COLO829v003T.somatic_caller_post_processed.vcf.gz \
 	--jvmheap 15g \
+

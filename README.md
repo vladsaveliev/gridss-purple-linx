@@ -20,7 +20,7 @@ The toolkit requires multiple reference data sets. These have been packaged into
 
 |reference genome | download location |
 |---|---|
-|hg19|https://resources.hartwigmedicalfoundation.nl/ then navigate to HMFTools-Resources/GRIDSS-Purple-Linx-Docker/gridss-purple-linx-docker-image-refdata-hg19.tar.gz|
+|hg19|https://resources.hartwigmedicalfoundation.nl/ then navigate to HMFTools-Resources/GRIDSS-Purple-Linx-Docker/gridss-purple-linx-docker-image-refdata-hg19-Dec2019.tar.gz|
 
 ### External software (local installation)
 

@@ -79,12 +79,13 @@ usage() {
 	echo "	--replication_origins: replication timing BED file (default: dbs/sv/heli_rep_origins.bed)" 1>&2
 	echo "	--ensembl_data_dir: ensemble data cache (default: dbs/ensembl_data_cache)" 1>&2
 	echo "	--validation_stringency: htsjdk SAM/BAM validation level (STRICT (default), LENIENT, or SILENT)" 1>&2
+	echo "	--help: print this message and exit" 1>&2
 	echo "" 1>&2
 	exit 1
 }
 
-OPTIONS=v:o:t:n:s:r:b:
-LONGOPTS=snvvcf:,nosnvvcf,output_dir:tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:,referencename:,viral_hosts_csv:,fusion_pairs_csv:,promiscuous_five_csv:,promiscuous_three_csv:,fragile_sites:,line_elements:,replication_origins:,ensembl_data_dir:,normal_sample:,tumour_sample:,install_dir:,picardoptions:,validation_stringency:
+OPTIONS=v:o:t:n:s:r:b:h
+LONGOPTS=snvvcf:,nosnvvcf,output_dir:,tumour_bam:,normal_bam:,sample:,threads:,jvmheap:,ref_dir:,reference:,repeatmasker:,blacklist:,bafsnps:,gcprofile:,gridsspon:,viralreference:,referencename:,viral_hosts_csv:,fusion_pairs_csv:,promiscuous_five_csv:,promiscuous_three_csv:,fragile_sites:,line_elements:,replication_origins:,ensembl_data_dir:,normal_sample:,tumour_sample:,install_dir:,picardoptions:,validation_stringency:,help
 ! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
 	# e.g. return value is 1
@@ -219,6 +220,10 @@ while true; do
 		--validation_stringency)
 			validation_stringency="$2"
 			shift 2
+			;;
+		-h|--help)
+			usage
+			exit 1
 			;;
 		--)
 			shift

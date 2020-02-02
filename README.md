@@ -168,7 +168,6 @@ docker run --ulimit nofile=100000:100000 \
 	gridss/gridss-purple-linx:latest \
 	-n /data/COLO829R_dedup.realigned.bam \
 	-t /data/COLO829T_dedup.realigned.bam \
-	-v /data/gridss-purple-linx-latest.vcf \
 	-s COLO829 \
 	--snvvcf /data/COLO829.somatic_caller_post_processed.vcf.gz
 ```
@@ -194,7 +193,6 @@ export LINX_JAR=$install_dir/hmftools/sv-linx-${LINX_VERSION}-jar-with-dependenc
 $install_dir/gridss-purple-linx/gridss-purple-linx.sh \
 	-n ~/colo829_example/COLO829R_dedup.realigned.bam \
 	-t ~/colo829_example/COLO829T_dedup.realigned.bam \
-	-v ~/colo829_example/gridss-purple-linx-example.vcf \
 	-s COLO829 \
 	--snvvcf ~/colo829_example/COLO829.somatic_caller_post_processed.vcf.gz \
 	--ref_dir ~/refdata \

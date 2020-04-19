@@ -441,7 +441,7 @@ if [[ ! -f $gridss_raw_vcf ]] ; then
 		$normal_bam \
 		$tumour_bam \
 		--picardoptions "VALIDATION_STRINGENCY=$validation_stringency $picardoptions" \
-		2>&1 | tee $log_prefix/gridss.log
+		2>&1 | tee $log_prefix.gridss.log
 else
 	echo "Found $gridss_raw_vcf, skipping GRIDSS" 
 fi
